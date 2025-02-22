@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{459061A1-8814-4C95-AD9B-2B0208DF65F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{58760440-8DF3-48E0-9798-FE1C35C22055}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShoppingCartService", "ShoppingCartService", "{222B79C6-AB5A-4AE8-A68A-EA4AC983582F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShoppingCart.Core", "ShoppingCart.Core", "{4B902BD2-93A8-4353-AA12-DB4E81D96242}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoppingCart.Application", "src\services\ShoppingCartService\ShoppingCart.Core\ShoppingCart.Application\ShoppingCart.Application.csproj", "{F0667D18-6928-4F51-A069-8AA077757A32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoppingCart.Domain", "src\services\ShoppingCartService\ShoppingCart.Core\ShoppingCart.Domain\ShoppingCart.Domain.csproj", "{82215ED9-7751-4ED4-81D1-C86210FFDAE1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShoppingCart.Infrastructure", "ShoppingCart.Infrastructure", "{00506287-A6EE-4F04-ADD0-35EA196DC420}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoppingCart.Persistence", "src\services\ShoppingCartService\ShoppingCart.Infrastructure\ShoppingCart.Persistence\ShoppingCart.Persistence.csproj", "{CDAFA83E-4568-4E3A-B820-228F5B155121}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoppingCart.Infrastructure", "src\services\ShoppingCartService\ShoppingCart.Infrastructure\ShoppingCart.Infrastructure\ShoppingCart.Infrastructure.csproj", "{39FB7E31-549B-4894-9CC5-5D8CD9A2923D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F0667D18-6928-4F51-A069-8AA077757A32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0667D18-6928-4F51-A069-8AA077757A32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0667D18-6928-4F51-A069-8AA077757A32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0667D18-6928-4F51-A069-8AA077757A32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82215ED9-7751-4ED4-81D1-C86210FFDAE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82215ED9-7751-4ED4-81D1-C86210FFDAE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82215ED9-7751-4ED4-81D1-C86210FFDAE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82215ED9-7751-4ED4-81D1-C86210FFDAE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDAFA83E-4568-4E3A-B820-228F5B155121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDAFA83E-4568-4E3A-B820-228F5B155121}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDAFA83E-4568-4E3A-B820-228F5B155121}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDAFA83E-4568-4E3A-B820-228F5B155121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39FB7E31-549B-4894-9CC5-5D8CD9A2923D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39FB7E31-549B-4894-9CC5-5D8CD9A2923D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39FB7E31-549B-4894-9CC5-5D8CD9A2923D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39FB7E31-549B-4894-9CC5-5D8CD9A2923D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{58760440-8DF3-48E0-9798-FE1C35C22055} = {459061A1-8814-4C95-AD9B-2B0208DF65F4}
+		{222B79C6-AB5A-4AE8-A68A-EA4AC983582F} = {58760440-8DF3-48E0-9798-FE1C35C22055}
+		{4B902BD2-93A8-4353-AA12-DB4E81D96242} = {222B79C6-AB5A-4AE8-A68A-EA4AC983582F}
+		{F0667D18-6928-4F51-A069-8AA077757A32} = {4B902BD2-93A8-4353-AA12-DB4E81D96242}
+		{82215ED9-7751-4ED4-81D1-C86210FFDAE1} = {4B902BD2-93A8-4353-AA12-DB4E81D96242}
+		{00506287-A6EE-4F04-ADD0-35EA196DC420} = {222B79C6-AB5A-4AE8-A68A-EA4AC983582F}
+		{CDAFA83E-4568-4E3A-B820-228F5B155121} = {00506287-A6EE-4F04-ADD0-35EA196DC420}
+		{39FB7E31-549B-4894-9CC5-5D8CD9A2923D} = {00506287-A6EE-4F04-ADD0-35EA196DC420}
+	EndGlobalSection
+EndGlobal
