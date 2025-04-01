@@ -208,6 +208,8 @@ PublishScripts/
 *.nuget.props
 *.nuget.targets
 
+*.DS_Store
+
 # Microsoft Azure Build Output
 csx/
 *.build.csdef
