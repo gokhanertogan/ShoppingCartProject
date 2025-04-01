@@ -8,17 +8,17 @@ namespace ShoppingCart.Domain.ShoppingCart.Aggregates;
 
 public class Cart : Aggregate<CartId>
 {
-    public CustomerId CustomerId { get; private set; } = default!;
+    public CartGuid CartGuid { get; private set; } = default!;
     private readonly List<CartItem> _items = default!;
     public IReadOnlyList<CartItem> Items => _items.AsReadOnly();
 
-    public static Cart Create(CustomerId customerId)
+    public static Cart Create(CartGuid cartGuid)
     {
         var cartId = CartId.Of(Guid.NewGuid());
         var cart = new Cart
         {
             Id = cartId,
-            CustomerId = customerId,
+            CartGuid = cartGuid,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -34,15 +34,25 @@ public class Cart : Aggregate<CartId>
         if (item != null)
         {
             item.IncreaseQuantity(quantity);
+            this.AddDomainEvent(new CartItemUpdatedEvent(this.Id,
+                                                       item.Id,
+                                                       variant.Price,
+                                                       item.Quantity));
         }
         else
         {
             _items.Add(new CartItem(variant, merchant, quantity));
+            this.AddDomainEvent(new CartItemAddedEvent(this.Id,
+                                                       CartItemId.Of(Guid.NewGuid()),
+                                                       variant.Id,
+                                                       merchant.Id,
+                                                       variant.Price,
+                                                       quantity));
         }
     }
 
     #region  Private Methods
-    private void ValidateQuantity(int quantity)
+    private static void ValidateQuantity(int quantity)
     {
         if (quantity <= 0)
         {
