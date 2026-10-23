@@ -1,0 +1,42 @@
+@baseUrl = http://localhost:5080
+
+### Create a cart with two lines (the second line merges into the first)
+# @name createCart
+POST {{baseUrl}}/api/carts
+Content-Type: application/json
+
+{
+  "cartGuid": "8f6c1f8e-6a51-4b9a-9f39-3f0a3f1d2c11",
+  "items": [
+    { "variant": { "id": "0b6d7a52-6a32-4f0d-8f8f-1f9b0f2b3c01", "price": 10.50 }, "merchant": { "id": "5a1e2f3b-7c4d-4e5f-8a9b-0c1d2e3f4a01", "name": "Acme" }, "quantity": 2 },
+    { "variant": { "id": "0b6d7a52-6a32-4f0d-8f8f-1f9b0f2b3c01", "price": 10.50 }, "merchant": { "id": "5a1e2f3b-7c4d-4e5f-8a9b-0c1d2e3f4a01", "name": "Acme" }, "quantity": 1 }
+  ]
+}
+
+### Get the cart
+GET {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}
+
+### Add an item
+# @name addItem
+POST {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}/items
+Content-Type: application/json
+
+{ "variant": { "id": "c3d4e5f6-0718-4293-a4b5-c6d7e8f90a12", "price": 4.25 }, "merchant": { "id": "5a1e2f3b-7c4d-4e5f-8a9b-0c1d2e3f4a01", "name": "Acme" }, "quantity": 3 }
+
+### Set the quantity of a line
+PUT {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}/items/{{addItem.response.body.$.items[1].id}}
+Content-Type: application/json
+
+{ "quantity": 5 }
+
+### Remove a line
+DELETE {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}/items/{{addItem.response.body.$.items[1].id}}
+
+### Clear the cart
+DELETE {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}/items
+
+### Event history of the cart
+GET {{baseUrl}}/api/carts/{{createCart.response.body.$.id}}/events
+
+### Health
+GET {{baseUrl}}/health/ready
