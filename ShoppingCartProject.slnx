@@ -12,4 +12,8 @@
     <Project Path="src/services/ShoppingCartService/ShoppingCart.Infrastructure/ShoppingCart.Infrastructure/ShoppingCart.Infrastructure.csproj" />
     <Project Path="src/services/ShoppingCartService/ShoppingCart.Infrastructure/ShoppingCart.Persistence/ShoppingCart.Persistence.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ShoppingCart.IntegrationTests/ShoppingCart.IntegrationTests.csproj" />
+    <Project Path="tests/ShoppingCart.UnitTests/ShoppingCart.UnitTests.csproj" />
+  </Folder>
 </Solution>
