@@ -49,19 +49,21 @@ public class ReadRepository<T, TId>(ShoppingCartDbContext context) : IReadReposi
         if (!tracking)
             query = query.AsNoTracking();
 
-        return (await query.FirstOrDefaultAsync(data => data.Id!.Equals(id)))!;
+        return (await query.FirstOrDefaultAsync(data => data.Id!.Equals(id), cancellationToken))!;
     }
 
     public async Task<T> GetByIdAsync(TId id, CancellationToken cancellationToken, bool tracking = true, params Expression<Func<T, object>>[] includes)
     {
-        var query = Table.AsQueryable().AsNoTracking();
+        var query = Table.AsQueryable();
+        if (!tracking)
+            query = query.AsNoTracking();
 
         foreach (var include in includes)
         {
             query = query.Include(include);
         }
 
-        return (await query.FirstOrDefaultAsync(data => data.Id!.Equals(id)))!;
+        return (await query.FirstOrDefaultAsync(data => data.Id!.Equals(id), cancellationToken))!;
     }
 
     public async Task<T> GetSingleAsync(Expression<Func<T, bool>> method, CancellationToken cancellationToken, bool tracking = true)
@@ -70,7 +72,7 @@ public class ReadRepository<T, TId>(ShoppingCartDbContext context) : IReadReposi
         if (!tracking)
             query = query.AsNoTracking();
 
-        return (await query.FirstOrDefaultAsync(method))!;
+        return (await query.FirstOrDefaultAsync(method, cancellationToken))!;
     }
 
     public IQueryable<T> GetWhere(Expression<Func<T, bool>> method, bool tracking = true)

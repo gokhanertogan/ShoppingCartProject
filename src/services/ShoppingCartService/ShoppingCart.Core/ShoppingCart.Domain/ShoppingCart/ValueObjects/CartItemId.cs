@@ -1,10 +1,11 @@
+using ShoppingCart.Domain.Common;
 using ShoppingCart.Domain.Exceptions;
 
 namespace ShoppingCart.Domain.ShoppingCart.ValueObjects;
 
-public record CartItemId
+public record CartItemId : IStronglyTypedId
 {
-    public Guid Value { get; set; }
+    public Guid Value { get; }
     private CartItemId(Guid value) => Value = value;
 
     public static CartItemId Of(Guid value)
@@ -16,4 +17,6 @@ public record CartItemId
 
         return new CartItemId(value);
     }
+
+    public override string ToString() => Value.ToString();
 }

@@ -1,38 +1,45 @@
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ShoppingCart.Application.Common.Persistence;
-using ShoppingCart.Domain.Common;
-using ShoppingCart.Persistence.Common.Events.Interfaces;
+using ShoppingCart.Persistence.Common.Outbox;
 
 namespace ShoppingCart.Persistence.Common.Data;
 
-public class UnitOfWork(ShoppingCartDbContext context, IDomainEventDispatcher dispatcher) : IUnitOfWork
+/// <summary>
+/// Commits the request in one transaction. Domain events are not dispatched in-process here:
+/// <see cref="CustomSaveChangesInterceptor"/> writes them to the event store and the outbox as part
+/// of the same commit, and <see cref="OutboxProcessor"/> dispatches them afterwards.
+/// </summary>
+public class UnitOfWork(ShoppingCartDbContext context, OutboxSignal outboxSignal) : IUnitOfWork
 {
+    private const string StreamVersionIndex = "IX_StoredEvents_StreamId_Version";
+
     private readonly ShoppingCartDbContext _context = context;
-    private readonly IDomainEventDispatcher _dispatcher = dispatcher;
+    private readonly OutboxSignal _outboxSignal = outboxSignal;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var domainEntities = _context.ChangeTracker
-            .Entries<IAggregate>()
-            .Where(e => e.Entity.DomainEvents.Any())
-            .ToList();
-
-        var domainEvents = domainEntities
-            .SelectMany(e => e.Entity.DomainEvents)
-            .ToList();
-
-        var result = await _context.SaveChangesAsync(cancellationToken);
-
-        foreach (var entity in domainEntities) //TODO - check if this is needed
+        int result;
+        try
         {
-            entity.Entity.ClearDomainEvents();
+            result = await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException exception)
+        {
+            // The aggregate row's Version no longer matches the version that was loaded.
+            throw new ConcurrencyConflictException("The aggregate was modified by another request.", exception);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: StreamVersionIndex,
+        })
+        {
+            // Another writer appended the same version to the event stream first.
+            throw new ConcurrencyConflictException("The aggregate was modified by another request.", exception);
         }
 
-        await _dispatcher.DispatchAsync(domainEvents);
+        _outboxSignal.Notify();
         return result;
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
     }
 }

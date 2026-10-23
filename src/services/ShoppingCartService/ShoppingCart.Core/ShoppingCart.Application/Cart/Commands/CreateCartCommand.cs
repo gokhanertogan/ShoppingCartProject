@@ -1,70 +1,60 @@
 using ShoppingCart.Application.Cart.Commands.Common;
+using ShoppingCart.Application.Cart.Dtos;
 using ShoppingCart.Application.Cart.Repositories;
+using ShoppingCart.Application.Common.Persistence;
 using ShoppingCart.Application.Common.Utils;
-using ShoppingCart.Domain.Exceptions;
 using ShoppingCart.Domain.ShoppingCart.Entities;
 using ShoppingCart.Domain.ShoppingCart.ValueObjects;
 
 namespace ShoppingCart.Application.Cart.Commands;
 
-public record CreateCartCommand : ICommand<Domain.ShoppingCart.Aggregates.Cart>
+public record CreateCartCommand : ICommand<CartDto>
 {
-    public Guid CartGuid { get; set; }
-    public List<CartItemRequest> Items { get; set; } = [];
+    public Guid CartGuid { get; init; }
+    public List<CartItemRequest> Items { get; init; } = [];
 }
-
 
 //TODO should be create cart item model by merchants
-public record CartItemRequest(VariantItemRequest Variant, MerchantItemRequest Merchant, int Quantity)
+public record CartItemRequest(VariantItemRequest Variant, MerchantItemRequest Merchant, int Quantity);
+
+public record VariantItemRequest(Guid Id, decimal Price);
+
+public record MerchantItemRequest(Guid Id, string Name);
+
+internal static class CartItemRequestExtensions
 {
-    public VariantItemRequest Variant { get; set; } = Variant;
-    public MerchantItemRequest Merchant { get; set; } = Merchant;
-    public int Quantity { get; set; } = Quantity;
+    public static (Variant Variant, Merchant Merchant) ToDomain(this CartItemRequest item)
+    {
+        if (item.Variant is null || item.Merchant is null)
+        {
+            throw new Domain.Exceptions.DomainException("variant and merchant are required for a cart item");
+        }
+
+        var variant = new Variant(VariantId.Of(item.Variant.Id), item.Variant.Price);
+        var merchant = new Merchant(MerchantId.Of(item.Merchant.Id), item.Merchant.Name);
+        return (variant, merchant);
+    }
 }
 
-public record VariantItemRequest(Guid Id, Decimal Price)
-{
-    public Guid Id { get; set; } = Id;
-    public decimal Price { get; set; } = Price;
-}
-
-public record MerchantItemRequest(Guid Id, string Name)
-{
-    public Guid Id { get; set; } = Id;
-    public string Name { get; set; } = Name;
-}
-
-public class CreateCartCommandCommandHandler(ICartWriteRepository cartWriteRepository) : ICommandHandler<CreateCartCommand, Domain.ShoppingCart.Aggregates.Cart>
+public class CreateCartCommandHandler(ICartWriteRepository cartWriteRepository, IUnitOfWork unitOfWork)
+    : ICommandHandler<CreateCartCommand, CartDto>
 {
     private readonly ICartWriteRepository _cartWriteRepository = cartWriteRepository;
-    public async Task<Result<Domain.ShoppingCart.Aggregates.Cart>> Handle(CreateCartCommand request, CancellationToken cancellationToken)
-    {
-        try
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+    public Task<Result<CartDto>> Handle(CreateCartCommand request, CancellationToken cancellationToken) =>
+        DomainOperation.ExecuteAsync(async () =>
         {
-            var cartGuid = CartGuid.Of(request.CartGuid);
-            var cart = Domain.ShoppingCart.Aggregates.Cart.Create(cartGuid);
-            foreach (var item in request.Items)
+            var cart = Domain.ShoppingCart.Aggregates.Cart.Create(CartGuid.Of(request.CartGuid));
+            foreach (var item in request.Items ?? [])
             {
-                var variantId = VariantId.Of(item.Variant.Id);
-                Variant variant = new(variantId, item.Variant.Price);
-                var merchantId = MerchantId.Of(item.Merchant.Id);
-                Merchant merchant = new(merchantId, item.Merchant.Name);
+                var (variant, merchant) = item.ToDomain();
                 cart.AddItem(variant, merchant, item.Quantity);
             }
 
             await _cartWriteRepository.AddAsync(cart, cancellationToken);
-            await _cartWriteRepository.SaveAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result<Domain.ShoppingCart.Aggregates.Cart>.Success(cart, 201);
-        }
-        catch (DomainException exception)
-        {
-            return Result<Domain.ShoppingCart.Aggregates.Cart>.Fail(exception.Message, 400);
-        }
-        catch (Exception)
-        {
-            return Result<Domain.ShoppingCart.Aggregates.Cart>.Fail("An unexpected error occurred while creating the cart.", 500);
-            //TODO should be logged
-        }
-    }
+            return Result<CartDto>.Success(cart.ToDto(), 201);
+        });
 }

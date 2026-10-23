@@ -7,4 +7,4 @@ public record CartItemUpdatedEvent(
     CartId CartId,
     CartItemId CartItemId,
     decimal Price,
-    int Quantity) : IDomainEvent;
+    int Quantity) : DomainEvent;

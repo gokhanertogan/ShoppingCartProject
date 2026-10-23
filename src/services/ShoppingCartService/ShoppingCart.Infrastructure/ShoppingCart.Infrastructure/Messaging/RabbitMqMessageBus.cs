@@ -4,12 +4,12 @@ namespace ShoppingCart.Infrastructure.Messaging;
 
 public class RabbitMqMessageBus : IMessageBus
 {
-    public Task PublishAsync<T>(T message)
+    public Task PublishAsync<T>(T message, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public Task SubscribeAsync<T>(Func<T, Task> handler)
+    public Task SubscribeAsync<T>(Func<T, Task> handler, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

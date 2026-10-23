@@ -7,5 +7,4 @@ public interface IWriteRepository<T, TId> : IRepository<T, TId> where T : IEntit
     Task<bool> RemoveAsync(TId id, CancellationToken cancellationToken);
     bool RemoveRange(List<T> datas);
     bool Update(T model);
-    Task SaveAsync(CancellationToken cancellationToken);
 }

@@ -9,4 +9,4 @@ public record CartItemAddedEvent(
     VariantId VariantId,
     MerchantId MerchantId,
     decimal Price,
-    int Quantity) : IDomainEvent;
+    int Quantity) : DomainEvent;

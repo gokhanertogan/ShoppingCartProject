@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using ShoppingCart.Application.Common.Persistence;
 using ShoppingCart.Domain.Common;
 using ShoppingCart.Persistence.Common.Data;
 
@@ -42,12 +41,5 @@ public class WriteRepository<T, TId>(ShoppingCartDbContext context) : IWriteRepo
     {
         EntityEntry entityEntry = Table.Update(model);
         return entityEntry.State == EntityState.Modified;
-    }
-
-    public async Task SaveAsync(CancellationToken cancellationToken)
-    {
-        
-
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }

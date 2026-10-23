@@ -1,79 +1,57 @@
+using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Application.Common.Persistence;
 using ShoppingCart.Domain.Common;
-using EventStore.ClientAPI;
-using System.Text.Json;
-using System.Text;
+using ShoppingCart.Persistence.Common.Serialization;
 
 namespace ShoppingCart.Persistence.Common.Data;
 
-public class EventStore(IEventStoreConnection client) : IEventStore
+/// <summary>
+/// PostgreSQL-backed event store. Events are rows of the <c>StoredEvents</c> table, written in the
+/// same transaction as the aggregate state, so the state and its history can never diverge.
+/// </summary>
+public sealed class EventStore(ShoppingCartDbContext context, EventSerializer serializer) : IEventStore
 {
-    private readonly IEventStoreConnection _client = client;
+    private readonly ShoppingCartDbContext _context = context;
+    private readonly EventSerializer _serializer = serializer;
 
-    public async Task SaveEventsAsync(Guid aggregateId, List<IDomainEvent> events)
+    public Task SaveEventsAsync(Guid aggregateId, string aggregateType, long expectedVersion, IReadOnlyList<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
-        var expectedVersion = await GetExpectedVersionForAggregate(aggregateId);
-        var eventStreamName = GetStreamName(aggregateId);
-
-        var eventData = events.Select(e =>
-        {
-            var jsonData = JsonSerializer.Serialize(e);
-            var metadata = GetMetadata(e);
-
-            return new EventData(
-                Guid.NewGuid(),
-                e.GetType().Name,
-                true,
-                Encoding.UTF8.GetBytes(jsonData),
-                metadata != null ? Encoding.UTF8.GetBytes(metadata) : null
-            );
-        }).ToArray();
-
-        var writeResult = await _client.AppendToStreamAsync(
-            eventStreamName,
-            expectedVersion,
-            eventData
-        );
+        Stage(aggregateId, aggregateType, expectedVersion, events, DateTime.UtcNow);
+        return Task.CompletedTask;
     }
 
-    public async Task<List<IDomainEvent>> GetEventsAsync(Guid aggregateId)
+    internal void Stage(Guid aggregateId, string aggregateType, long expectedVersion, IReadOnlyList<IDomainEvent> events, DateTime recordedAt)
     {
-        var eventStreamName = GetStreamName(aggregateId);
-        var events = new List<IDomainEvent>();
-
-        var result = _client.ReadStreamEventsForwardAsync(eventStreamName, StreamPosition.Start, 4096, false, null);
-        var streamEventsSlice = await result;
-        foreach (var resolvedEvent in streamEventsSlice.Events)
+        var version = expectedVersion;
+        foreach (var domainEvent in events)
         {
-            var eventData = Encoding.UTF8.GetString(resolvedEvent.Event.Data.ToArray());
-            var domainEvent = JsonSerializer.Deserialize<IDomainEvent>(eventData)!;
-            events.Add(domainEvent);
+            _context.StoredEvents.Add(new StoredEvent
+            {
+                StreamId = aggregateId,
+                StreamType = aggregateType,
+                Version = ++version,
+                EventId = domainEvent.EventId,
+                EventType = EventSerializer.GetEventType(domainEvent),
+                Data = _serializer.Serialize(domainEvent),
+                OccurredOn = domainEvent.OccurredOn,
+                RecordedAt = recordedAt,
+            });
         }
-        
-        return events;
     }
 
-    private static string GetStreamName(Guid aggregateId)
+    public async Task<IReadOnlyList<RecordedEvent>> GetEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default)
     {
-        return $"aggregate-{aggregateId}";
-    }
+        var rows = await _context.StoredEvents
+            .AsNoTracking()
+            .Where(e => e.StreamId == aggregateId)
+            .OrderBy(e => e.Version)
+            .ToListAsync(cancellationToken);
 
-    private static string GetMetadata(IDomainEvent domainEvent)
-    {
-        return $"Event type: {domainEvent.GetType().Name}, OccurredOn: {domainEvent.OccurredOn}";
-    }
-
-    private async Task<long> GetExpectedVersionForAggregate(Guid aggregateId)
-    {
-        var eventStreamName = GetStreamName(aggregateId);
-        var result = await _client.ReadStreamEventsBackwardAsync(eventStreamName, StreamPosition.End, 1, false, null);
-        long streamPosition = StreamPosition.Start;
-
-        if (result.Events.Length != 0)
-        {
-            streamPosition = result.Events[0].Event.EventNumber;
-        }
-
-        return streamPosition == StreamPosition.Start ? -1 : streamPosition;
+        return [.. rows.Select(row => new RecordedEvent(
+            row.StreamId,
+            row.StreamType,
+            row.Version,
+            _serializer.Deserialize(row.EventType, row.Data),
+            row.RecordedAt))];
     }
 }

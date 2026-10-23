@@ -1,6 +1,7 @@
 namespace ShoppingCart.Domain.Exceptions;
 
-public class DomainException(string message) : Exception($"Domain exception \"{message}\" throws from domain layer")
+/// <summary>A business rule of the domain was violated.</summary>
+public class DomainException(string message) : Exception(message)
 {
 
 }

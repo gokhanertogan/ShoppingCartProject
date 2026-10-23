@@ -1,8 +1,9 @@
+using ShoppingCart.Domain.Common;
 using ShoppingCart.Domain.Exceptions;
 
 namespace ShoppingCart.Domain.ShoppingCart.ValueObjects;
 
-public record MerchantId
+public record MerchantId : IStronglyTypedId
 {
     public Guid Value { get; }
     private MerchantId(Guid value) => Value = value;
@@ -16,4 +17,6 @@ public record MerchantId
 
         return new MerchantId(value);
     }
+
+    public override string ToString() => Value.ToString();
 }
