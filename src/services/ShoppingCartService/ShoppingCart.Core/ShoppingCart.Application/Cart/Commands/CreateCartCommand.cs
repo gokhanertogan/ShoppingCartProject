@@ -1,6 +1,7 @@
 using ShoppingCart.Application.Cart.Commands.Common;
 using ShoppingCart.Application.Cart.Repositories;
 using ShoppingCart.Application.Common.Utils;
+using ShoppingCart.Domain.Exceptions;
 using ShoppingCart.Domain.ShoppingCart.Entities;
 using ShoppingCart.Domain.ShoppingCart.ValueObjects;
 
@@ -51,14 +52,18 @@ public class CreateCartCommandCommandHandler(ICartWriteRepository cartWriteRepos
                 cart.AddItem(variant, merchant, item.Quantity);
             }
 
-            await _cartWriteRepository.AddAsync(cart, CancellationToken.None);   
-            await _cartWriteRepository.SaveAsync(CancellationToken.None);         
+            await _cartWriteRepository.AddAsync(cart, cancellationToken);
+            await _cartWriteRepository.SaveAsync(cancellationToken);
 
             return Result<Domain.ShoppingCart.Aggregates.Cart>.Success(cart, 201);
         }
-        catch (Exception exception)
+        catch (DomainException exception)
         {
-            return Result<Domain.ShoppingCart.Aggregates.Cart>.Fail(exception.ToString(), 500);
+            return Result<Domain.ShoppingCart.Aggregates.Cart>.Fail(exception.Message, 400);
+        }
+        catch (Exception)
+        {
+            return Result<Domain.ShoppingCart.Aggregates.Cart>.Fail("An unexpected error occurred while creating the cart.", 500);
             //TODO should be logged
         }
     }

@@ -5,6 +5,9 @@ namespace ShoppingCart.Domain.ShoppingCart.Entities;
 
 public class CartItem(Variant variant, Merchant merchant, int quantity): Entity<CartItemId>
 {
+    // Required by EF Core: navigations cannot be bound to constructor parameters.
+    private CartItem() : this(default!, default!, default) { }
+
     public Variant Variant { get; private set; } = variant;
     public Merchant Merchant { get; private set; } = merchant;
     public int Quantity { get; private set; } = quantity;

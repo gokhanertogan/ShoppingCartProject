@@ -24,7 +24,8 @@ public static class DependencyInjection
 
         services.AddDbContext<ShoppingCartDbContext>((serviceProvider, optionsBuilder) =>
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=BasketDB;Username=sa;Password=Your_password123");
+            optionsBuilder.UseNpgsql(configuration.GetConnectionString("ShoppingCartDb")
+                ?? throw new InvalidOperationException("Connection string 'ShoppingCartDb' is not configured."));
             optionsBuilder.AddInterceptors(serviceProvider.GetRequiredService<CustomSaveChangesInterceptor>());
         });
 

@@ -13,6 +13,7 @@ public class Variant : Entity<VariantId>
     {
         DomainValidation.ValidateMin(nameof(Price), price, 0);
         
+        Id = variantId;
         VariantId = variantId;
         Price = price;
         CreatedAt = DateTime.UtcNow;

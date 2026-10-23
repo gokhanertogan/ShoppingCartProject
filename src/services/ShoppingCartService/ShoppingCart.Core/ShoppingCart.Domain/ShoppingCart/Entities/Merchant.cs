@@ -15,6 +15,7 @@ public class Merchant : Entity<MerchantId>
         DomainValidation.ValidateNotEmptyOrWhitespace(name, nameof(Name));
 
         Id = merchantId;
+        MerchantId = merchantId;
         Name = name;
         CreatedAt = DateTime.UtcNow;
     }

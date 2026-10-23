@@ -9,7 +9,7 @@ namespace ShoppingCart.Domain.ShoppingCart.Aggregates;
 public class Cart : Aggregate<CartId>
 {
     public CartGuid CartGuid { get; private set; } = default!;
-    private readonly List<CartItem> _items = default!;
+    private readonly List<CartItem> _items = [];
     public IReadOnlyList<CartItem> Items => _items.AsReadOnly();
 
     public static Cart Create(CartGuid cartGuid)
@@ -30,7 +30,7 @@ public class Cart : Aggregate<CartId>
     {
         ValidateQuantity(quantity);
 
-        var item = _items.FirstOrDefault(x => x.Variant == variant && x.Merchant == merchant);
+        var item = _items.FirstOrDefault(x => x.Variant.Id == variant.Id && x.Merchant.Id == merchant.Id);
         if (item != null)
         {
             item.IncreaseQuantity(quantity);
@@ -41,9 +41,10 @@ public class Cart : Aggregate<CartId>
         }
         else
         {
-            _items.Add(new CartItem(variant, merchant, quantity));
+            var cartItemId = CartItemId.Of(Guid.NewGuid());
+            _items.Add(new CartItem(variant, merchant, quantity) { Id = cartItemId });
             this.AddDomainEvent(new CartItemAddedEvent(this.Id,
-                                                       CartItemId.Of(Guid.NewGuid()),
+                                                       cartItemId,
                                                        variant.Id,
                                                        merchant.Id,
                                                        variant.Price,

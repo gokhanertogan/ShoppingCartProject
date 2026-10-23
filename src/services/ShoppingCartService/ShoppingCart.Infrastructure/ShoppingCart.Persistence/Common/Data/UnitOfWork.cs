@@ -12,7 +12,7 @@ public class UnitOfWork(ShoppingCartDbContext context, IDomainEventDispatcher di
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var domainEntities = _context.ChangeTracker
-            .Entries<IAggregate<object>>()
+            .Entries<IAggregate>()
             .Where(e => e.Entity.DomainEvents.Any())
             .ToList();
 
