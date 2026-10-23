@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/services/" />
+  <Folder Name="/src/services/ShoppingCartService/" />
+  <Folder Name="/src/services/ShoppingCartService/ShoppingCart.Core/">
+    <Project Path="src/services/ShoppingCartService/ShoppingCart.Core/ShoppingCart.Application/ShoppingCart.Application.csproj" />
+    <Project Path="src/services/ShoppingCartService/ShoppingCart.Core/ShoppingCart.Domain/ShoppingCart.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/services/ShoppingCartService/ShoppingCart.Infrastructure/">
+    <Project Path="src/services/ShoppingCartService/ShoppingCart.Infrastructure/ShoppingCart.Infrastructure/ShoppingCart.Infrastructure.csproj" />
+    <Project Path="src/services/ShoppingCartService/ShoppingCart.Infrastructure/ShoppingCart.Persistence/ShoppingCart.Persistence.csproj" />
+  </Folder>
+</Solution>
