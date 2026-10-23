@@ -1,0 +1,54 @@
+# Local stack: PostgreSQL, RabbitMQ and the ShoppingCart API.
+# Credentials are development placeholders. Host ports can be overridden, e.g. POSTGRES_PORT=55432.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: shoppingcart
+      POSTGRES_PASSWORD: Your_password123
+      POSTGRES_DB: shoppingcart
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shoppingcart -d shoppingcart"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: shoppingcart
+      RABBITMQ_DEFAULT_PASS: Your_password123
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__ShoppingCartDb: "Host=postgres;Port=5432;Database=shoppingcart;Username=shoppingcart;Password=Your_password123;Gss Encryption Mode=Disable"
+      ConnectionStrings__RabbitMq: "amqp://shoppingcart:Your_password123@rabbitmq:5672/"
+      Database__MigrateOnStartup: "true"
+      OpenApi__Enabled: "true"
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
